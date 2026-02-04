@@ -22,6 +22,12 @@ head(data)
 library(dplyr)
 data <- data %>%
   mutate(Fecha_solo = as.Date(Fecha))
+data <- data %>%
+  filter(!is.na(Fecha_solo)) %>%  # eliminar filas sin fecha
+  mutate(
+    start_datetime = paste0(Fecha_solo, "T00:00:00Z"),
+    end_datetime   = paste0(Fecha_solo, "T23:59:59Z")
+  )
 
 # Contar fechas únicas
 num_fechas_unicas <- n_distinct(data$Fecha_solo)
@@ -83,17 +89,12 @@ Days_df <- Days_df %>%
          Day = format(Days, "%d"))
 head(Days_df)
 
-# add mins and secs (as we are working with daily resolution we dont need the particular time of each observation):
-# Note: 11:00:00 if you use 12:00:00 CMEMS use the next day!
-Days_df$Days_with_time <- paste0(Days_df$Days, " 11:00:00")
-head(Days_df)
-
 
 # 2. Prepare your catalog------------------------------------------------------
 
 # 2.1. Import data catalog
 # Remember, the catalog is where you have the required information for download
-catalog <- read.csv2("E:/DINACON/Paper violaceas/EnviroRWorkshop_REDUCE/R/input/Catalog_CMEMS.csv", sep=";")
+catalog <- read.csv2("E:/DINACON/Paper violaceas/EnviroRWorkshop_REDUCE/R/input/Catalog_CMEMS_05-25.csv", sep=";")
 View(catalog)
 
 # Check it out and ensure numerical variables are numeric
@@ -142,10 +143,10 @@ cat <- catalog %>%
 dataset_id <- cat$dataset_id
 print(dataset_id)
 
-start_datetime <- min(Days_df$Days_with_time)
+start_datetime <- min(Days_df$start_datetime)
 print(start_datetime)
 
-end_datetime <- max(Days_df$Days_with_time)
+end_datetime <- max(Days_df$end_datetime)
 print(end_datetime)
 
 # Variables (soporta 1 o varias, ej. "uo, vo")
@@ -177,7 +178,7 @@ print(output_filename)
 
 # Selecting where to save it:
 # Generate a folder within input
-destination_folder <- paste0("R/input/cmems")
+destination_folder <- paste0("R/input/cmems_02_25")
 if (!dir.exists(destination_folder)) dir.create(destination_folder, recursive = TRUE)
 print(destination_folder)
 
@@ -194,11 +195,9 @@ if (!dir.exists(output_directory)) {
 }
 
 # Download:
-
-
 cm$subset(dataset_id = dataset_id,
-          start_datetime = start_datetime,
-          end_datetime = end_datetime,
+          start_datetime = df_dates$start_datetime[j],
+          end_datetime   = df_dates$end_datetime[j],
           variables = variables,
           minimum_longitude = minimum_longitude,
           maximum_longitude = maximum_longitude,
@@ -258,52 +257,59 @@ head(cat)
 #  filter(dimensions %in% c("2D")) 
 
 # Create folder where you are going to save to files:
-destination_folder <- paste0("R/input/cmems")
+# Carpeta de destino
+destination_folder <- "R/input/cmems_trial"
 if (!dir.exists(destination_folder)) dir.create(destination_folder, recursive = TRUE)
 
-t <- Sys.time()
-for(i in 1:nrow(cat)){ 
+# Bucle por producto
+for(i in 1:nrow(catalog)) {
   
-  # Calculate remaining products
-  #i=2
-  remaining_products <- nrow(cat) - i
+  # Subset del catálogo
+  cat <- catalog[i, ]
   
-  #If you need a folder per each date:
-  #j=1
-  for(j in 1:nrow(df)){
-    # Calculate remaining dates
-    remaining_dates <- nrow(df) - j
+  # Separar variables si hay varias
+  variables <- strsplit(cat$var, ",\\s*")[[1]]
+  
+  # Fechas de ese producto
+  start_date <- as.Date(cat$date_min_total, format="%d/%m/%Y")
+  end_date   <- as.Date(cat$date_max_total, format="%d/%m/%Y")
+  
+  # Subset de Days_df que coincidan
+  df_dates <- Days_df %>% filter(Days >= start_date & Days <= end_date)
+  
+  for(j in 1:nrow(df_dates)) {
     
-    # Print the current product and remaining products
-    print(paste("Processing product", i, "of", nrow(cat), "-", remaining_products, "remaining"))
-    # Print the current date and remaining dates
-    print(paste("Processing date", j, "of", nrow(df), "-", remaining_dates, "remaining"))
+    day <- df_dates$Days[j]
+    day_with_time <- df_dates$Days_with_time[j]
     
+    # Carpeta por año/mes/día
+    date_dir <- file.path(destination_folder,
+                          df_dates$Year[j],
+                          df_dates$Month[j],
+                          df_dates$Day[j])
+    if(!dir.exists(date_dir)) dir.create(date_dir, recursive = TRUE)
     
-    # Create folders for different dates inside the variable folders
-    date_dir <- file.path(destination_folder, df$Year[j], df$Month[j], df$Day[j])
-    if (!file.exists(date_dir)) {
-      dir.create(date_dir, recursive = TRUE)}
+    # Nombre del archivo
+    file_name <- paste0(cat$var_name, "_", day, ".nc")
     
-    # Define the file name using the current date
-    file_name <- paste0(cat$var_name[i], "_", df$Days[j], ".nc")
-    
-    # download data
+    # Subset
     cm$subset(
-      dataset_id = cat$dataset_id[i],
-      start_datetime = df$Days_with_time[j], #format example "1994-05-16 12:00:00"
-      end_datetime = df$Days_with_time[j],
-      variables = list(cat$var[i]), # attention - variable must be a list
-      minimum_longitude = cat$xmin[i],
-      maximum_longitude =  cat$xmax[i],
-      minimum_latitude =  cat$ymin[i],
-      maximum_latitude = cat$ymax[i],
-      minimum_depth = cat$depth_min[i],
-      maximum_depth = cat$depth_max[i],
-      output_filename = file_name,
-      output_directory = date_dir)
+      dataset_id = cat$dataset_id,
+      start_datetime = day_with_time,
+      end_datetime   = day_with_time,
+      variables      = as.list(variables),
+      minimum_longitude = cat$xmin,
+      maximum_longitude = cat$xmax,
+      minimum_latitude  = cat$ymin,
+      maximum_latitude  = cat$ymax,
+      output_filename   = file_name,
+      output_directory  = date_dir
+    )
+    
+    cat(paste("Descargado:", file_name, "\n"))
   }
 }
+
 Sys.time() - t 
 
 

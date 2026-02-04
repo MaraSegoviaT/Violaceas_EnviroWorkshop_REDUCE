@@ -1,0 +1,8 @@
+﻿id_product;var_name;variable;dimensions;product_type;provider;service;dataset_id;standard_name;units;temporal_resolution;spatial_resolution;var;xmin;xmax;ymin;ymax;subvar;date_min_total;date_max_total
+1;SST;Sea water potential temperature;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_PHY_006_004;cmems_mod_med_phy-temp_my_4.2km_P1D-m;sea_surface_temperature;ºC;daily;0.0625°;thetao;-5.5;4.5;35.5;43.5;thetao;01/01/2005;31/12/2025
+2;SAL;Sea water salinity;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_PHY_006_004;cmems_mod_med_phy-sal_my_4.2km_P1D-m;sea_water_salinity;psu;daily;0.0625°;so;-5.5;4.5;35.5;43.5;so;01/01/2005;31/12/2025
+3;VEL;Eastward & northward sea water velocity;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_PHY_006_004;cmems_mod_med_phy-cur_my_4.2km_P1D-m;sea_water_velocity;m/s;daily;0.0625°;uo, vo;-5.5;4.5;35.5;43.5;uo, vo;01/01/2005;31/12/2025
+4;MLT;Ocean mixed layer thickness defined by sigma theta;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_PHY_006_004;cmems_mod_med_phy-mlt_my_4.2km_P1D-m;mixed_layer_thickness;m ;daily;0.0625°;mlt;-5.5;4.5;35.5;43.5;mlt;01/01/2005;31/12/2025
+5;CHL;Chlorophyll-a concentration;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_BGC_006_008;cmems_mod_med_bgc-chl_my_4.2km_P1D-m;chlorophyll-a_concentration;mg/m³;daily;0.0625°;chlor_a;-5.5;4.5;35.5;43.5;chlor_a;01/01/2005;31/12/2025
+6;NIT;Nitrate concentration;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_BGC_006_008;cmems_mod_med_bgc-nitrate_my_4.2km_P1D-m;nitrate_concentratio;mmol/m³;daily;0.0625°;nitrate;-5.5;4.5;35.5;43.5;nitrate;01/01/2005;31/12/2025
+7;OXY;Dissolved oxygen;2D;Reanalysis;CMEMS;MEDSEA_MULTIYEAR_BGC_006_008;cmems_mod_med_bgc-oxygen_my_4.2km_P1D-m;dissolved_oxygen;mmol/m³;daily;0.0625°;oxygen;-5.5;4.5;35.5;43.5;oxygen;01/01/2005;31/12/2025

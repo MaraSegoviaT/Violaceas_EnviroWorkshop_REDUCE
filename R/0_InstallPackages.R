@@ -29,8 +29,17 @@ virtualenv_install("cmems", packages = c("copernicusmarine"))
 reticulate::use_virtualenv("cmems", required = TRUE)
 # load package / import library (py)
 cm <- import("copernicusmarine")
-# log in in your CMEMS user (you should have another script with this info)
-#cm$login(username, password)
-# for session yes == y
-#y
 
+####GESTIONAR ESTO CUANDO PUEDA--------------#######
+# Tus credenciales-funciona
+username <- "masetru@alumni.uv.es"
+password <- "Carryon9"
+
+# Login
+cm$login(username, password)
+
+#------------------------------------------Prefiero asi (.Reenviron creado)
+username <- Sys.getenv("CMEMS_USER")
+password <- Sys.getenv("CMEMS_PASS")
+
+cm$login(username, password)
